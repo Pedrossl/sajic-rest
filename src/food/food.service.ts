@@ -1,0 +1,59 @@
+import { Injectable } from '@nestjs/common';
+import type {
+  FoodModel,
+  FoodUncheckedCreateInput,
+  FoodUncheckedUpdateInput,
+} from '../../generated/prisma/models/Food';
+import { PrismaService } from '../database/prisma.service';
+import { CreateFoodDto } from './dto/create-food.dto';
+import { FoodDto } from './dto/food.dto';
+import { UpdateFoodDto } from './dto/update-food.dto';
+
+@Injectable()
+export class FoodService {
+  constructor(private readonly prisma: PrismaService) {}
+  async create(createFoodDto: CreateFoodDto): Promise<FoodModel> {
+    const data: FoodUncheckedCreateInput = {
+      name: createFoodDto.name,
+      description: createFoodDto.description ?? null,
+      price: createFoodDto.price,
+      categoryId: createFoodDto.categoryId,
+      createdAt: createFoodDto.createdAt,
+      updatedAt: createFoodDto.updatedAt ?? new Date(),
+    };
+
+    return this.prisma.food.create({ data });
+  }
+
+  async findAll(): Promise<FoodModel[]> {
+    return this.prisma.food.findMany();
+  }
+
+  async findOne(id: number): Promise<FoodDto | null> {
+    return this.prisma.food.findUnique({
+      where: { id },
+    });
+  }
+
+  async update(id: number, updateFoodDto: UpdateFoodDto): Promise<FoodModel> {
+    const data: FoodUncheckedUpdateInput = {} as FoodUncheckedUpdateInput;
+    if (updateFoodDto.name !== undefined) data.name = updateFoodDto.name;
+    if (updateFoodDto.description !== undefined)
+      data.description = updateFoodDto.description ?? null;
+    if (updateFoodDto.price !== undefined) data.price = updateFoodDto.price;
+    if (updateFoodDto.categoryId !== undefined)
+      data.categoryId = updateFoodDto.categoryId;
+    if (updateFoodDto.createdAt !== undefined)
+      data.createdAt = updateFoodDto.createdAt;
+    data.updatedAt = updateFoodDto.updatedAt ?? new Date();
+
+    return this.prisma.food.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async remove(id: number): Promise<FoodModel> {
+    return this.prisma.food.delete({ where: { id } });
+  }
+}
