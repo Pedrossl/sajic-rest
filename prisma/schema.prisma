@@ -1,6 +1,6 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -26,4 +26,15 @@ model Food {
   createdAt   DateTime @default(now())
   updatedAt   DateTime
   Category    Category @relation(fields: [categoryId], references: [id])
+  Review      Review[]
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?
+  foodId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Food      Food     @relation(fields: [foodId], references: [id])
 }

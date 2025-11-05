@@ -25,8 +25,10 @@ export class FoodService {
     return this.prisma.food.create({ data });
   }
 
-  async findAll(): Promise<FoodModel[]> {
-    return this.prisma.food.findMany();
+  async findAll(): Promise<FoodDto[]> {
+    return this.prisma.food.findMany({
+      include: { Category: true },
+    });
   }
 
   async findOne(id: number): Promise<FoodDto | null> {

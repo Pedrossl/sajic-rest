@@ -37,8 +37,19 @@ export class CategoryService {
   }
 
   async remove(id: number): Promise<CategoryDto> {
-    return this.prisma.category.delete({
+    const category = await this.prisma.category.findUnique({
       where: { id },
     });
+
+    if (category == null) {
+      throw new Error('Category not found');
+    }
+
+    const results = await this.prisma.$transaction([
+      this.prisma.food.deleteMany({ where: { categoryId: id } }),
+      this.prisma.category.delete({ where: { id } }),
+    ]);
+
+    return results[1] as CategoryDto;
   }
 }
