@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { Injectable } from '@nestjs/common';
 import type {
   ReviewModel,
@@ -26,7 +25,13 @@ export class ReviewService {
   }
 
   async findAll(): Promise<ReviewModel[]> {
-    return this.prisma.review.findMany();
+    return this.prisma.review.findMany({
+      include: {
+        Food: {
+          include: { Category: true },
+        },
+      },
+    });
   }
 
   async findOne(id: number): Promise<ReviewModel | null> {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import type {
   FoodModel,
   FoodUncheckedCreateInput,
@@ -13,6 +13,13 @@ import { UpdateFoodDto } from './dto/update-food.dto';
 export class FoodService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createFoodDto: CreateFoodDto): Promise<FoodModel> {
+    // validate category exists to avoid FK constraint errors
+    if (createFoodDto.categoryId) {
+      const cat = await this.prisma.category.findUnique({
+        where: { id: createFoodDto.categoryId },
+      });
+      if (!cat) throw new NotFoundException('Category not found');
+    }
     const data: FoodUncheckedCreateInput = {
       name: createFoodDto.name,
       description: createFoodDto.description ?? null,
@@ -34,6 +41,7 @@ export class FoodService {
   async findOne(id: number): Promise<FoodDto | null> {
     return this.prisma.food.findUnique({
       where: { id },
+      include: { Category: true },
     });
   }
 
@@ -43,8 +51,13 @@ export class FoodService {
     if (updateFoodDto.description !== undefined)
       data.description = updateFoodDto.description ?? null;
     if (updateFoodDto.price !== undefined) data.price = updateFoodDto.price;
-    if (updateFoodDto.categoryId !== undefined)
+    if (updateFoodDto.categoryId !== undefined) {
+      const cat = await this.prisma.category.findUnique({
+        where: { id: updateFoodDto.categoryId },
+      });
+      if (!cat) throw new NotFoundException('Category not found');
       data.categoryId = updateFoodDto.categoryId;
+    }
     if (updateFoodDto.createdAt !== undefined)
       data.createdAt = updateFoodDto.createdAt;
     data.updatedAt = updateFoodDto.updatedAt ?? new Date();
